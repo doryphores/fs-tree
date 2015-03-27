@@ -1,0 +1,23 @@
+{
+  "name": "fs-tree",
+  "version": "1.0.0",
+  "description": "Self-updating file system tree",
+  "main": "lib/file-tree.js",
+  "scripts": {
+    "test": "./node_modules/.bin/mocha --compilers coffee:coffee-script/register"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^0.9.0",
+    "immutable": "^3.7.0",
+    "pathwatcher": "^4.3.1"
+  },
+  "devDependencies": {
+    "chai": "^2.2.0",
+    "coffee-script": "^1.9.1",
+    "fs-extra": "^0.16.5",
+    "mocha": "^2.2.1",
+    "temp": "^0.8.1"
+  }
+}

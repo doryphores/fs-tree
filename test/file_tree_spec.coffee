@@ -50,8 +50,11 @@ describe "FileTree", ->
       expect(@fileTree.tree.get("path")).to.eql @tempDir
 
     it "reflects the state of the given directory tree", ->
-      tree = @fileTree.tree.toJS()
-      expect(tree).to.have.deep.property("children[1].children[0].name", "file_1")
+      expect(@fileTree.findNode("at_root").get("type")).to.equal("file")
+      expect(@fileTree.findNode("z").get("children").size).to.equal(3)
+      expect(@fileTree.findNode("d/e/e").get("children").size).to.equal(1)
+      expect(@fileTree.findNode("d/e/e/p/deep_1").get("type")).to.equal("file")
+      expect(@fileTree.findNode("path/not/found")).to.be.undefined
 
     it "orders the nodes folder first", ->
       tree = @fileTree.tree.toJS()
@@ -80,6 +83,7 @@ describe "FileTree", ->
           previousTree = @fileTree.tree
           @fileTree.on "change", (tree) ->
             expect(tree).to.not.equal(previousTree)
-            expect(tree.getIn(["children", 1, "children", 2, "name"])).to.equal "file_21"
+            tree = tree.toJS()
+            expect(tree.children[1].children[2].name).to.equal "file_21"
             done()
           fs.outputFile("#{@tempDir}/z/file_21", "")

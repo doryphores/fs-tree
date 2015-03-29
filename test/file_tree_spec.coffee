@@ -50,7 +50,7 @@ describe "FileTree", ->
 
     it "creates a root element for the tree", ->
       expect(@fileTree.tree.get("name")).to.eql "root"
-      expect(@fileTree.tree.get("path")).to.eql @tempDir
+      expect(@fileTree.tree.get("path")).to.eql ""
 
     it "reflects the state of the given directory tree", ->
       expect(@fileTree.findNode("at_root").get("type")).to.equal("file")

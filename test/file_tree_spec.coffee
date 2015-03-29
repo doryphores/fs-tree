@@ -57,7 +57,7 @@ describe "FileTree", ->
       expect(@fileTree.findNode("z").get("children").size).to.equal(3)
       expect(@fileTree.findNode("d/e/e").get("children").size).to.equal(1)
       expect(@fileTree.findNode("d/e/e/p/deep_1").get("type")).to.equal("file")
-      expect(@fileTree.findNode("path/not/found")).to.be.undefined
+      expect(=> @fileTree.findNode("path/not/found")).to.throw "Node not found at path: path/not/found"
 
     it "orders the nodes folder first", ->
       tree = @fileTree.tree.toJS()
@@ -101,6 +101,20 @@ describe "FileTree", ->
             expect(tree).to.not.equal(previousTree)
             tree = tree.toJS()
             expect(node.name for node in tree.children[1].children).to.eql ["file_1", "file_3"]
+            done()
+          fs.unlinkSync("#{@tempDir}/z/file_2")
+
+        it "the deleted node is no longer available", (done) ->
+          previousTree = @fileTree.tree
+          @fileTree.on "change", (tree) =>
+            expect(=> @fileTree.findNode("z/file_2")).to.throw "Node not found at path: z/file_2"
+            done()
+          fs.unlinkSync("#{@tempDir}/z/file_2")
+          
+        it "siblings of deleted node are re-indexed", (done) ->
+          file_3 = @fileTree.findNode("z/file_3")
+          @fileTree.on "change", (tree) =>
+            expect(@fileTree.findNode("z/file_3")).to.equal file_3
             done()
           fs.unlinkSync("#{@tempDir}/z/file_2")
 

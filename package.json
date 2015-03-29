@@ -18,6 +18,8 @@
     "coffee-script": "^1.9.1",
     "fs-extra": "^0.16.5",
     "mocha": "^2.2.1",
+    "sinon": "^1.14.1",
+    "sinon-chai": "^2.7.0",
     "temp": "^0.8.1"
   }
 }

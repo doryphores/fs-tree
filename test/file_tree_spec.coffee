@@ -1,4 +1,7 @@
-expect = require("chai").expect
+chai = require("chai")
+expect = chai.expect
+sinon = require("sinon")
+chai.use(require("sinon-chai"));
 
 temp = require("temp")
 fs = require("fs-extra")
@@ -76,7 +79,10 @@ describe "FileTree", ->
 
     describe "when watching a folder node", ->
       beforeEach ->
-        @fileTree.tree.getIn(["children", 1, "watcher"]).start()
+        @fileTree.watchNode("z")
+        
+      it "sets up a path watcher", ->
+        expect(@fileTree.watchers).to.have.key("z")
 
       describe "when a new file is added to the node", ->
         it "triggers a 'change' event and passes the updated tree", (done) ->
@@ -107,3 +113,19 @@ describe "FileTree", ->
             expect(node.name for node in tree.children[1].children).to.eql ["file_1", "file_3", "file_4"]
             done()
           fs.renameSync("#{@tempDir}/z/file_2", "#{@tempDir}/z/file_4")
+
+      describe "when a watched folder is removed", ->
+        it "closes and removes any watchers open on itself or any of its sub folders", (done) ->
+          @fileTree.watchNode("d/e")
+          @fileTree.watchNode("d/e/e")
+          @fileTree.watchNode("d/e/e/p/e/r")
+          watcher1 = @fileTree.watchers["d/e/e"]
+          watcher2 = @fileTree.watchers["d/e/e/p/e/r"]
+          sinon.spy(watcher1, "close")
+          sinon.spy(watcher2, "close")
+          @fileTree.on "change", ->
+            expect(watcher1.close).to.have.been.called
+            expect(watcher2.close).to.have.been.called
+            expect(@watchers).to.not.have.keys("d/e/e", "d/e/e/p/e/r")
+            done()
+          fs.removeSync("#{@tempDir}/d/e/e")

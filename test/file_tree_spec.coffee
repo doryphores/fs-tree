@@ -87,3 +87,23 @@ describe "FileTree", ->
             expect(tree.children[1].children[2].name).to.equal "file_21"
             done()
           fs.outputFile("#{@tempDir}/z/file_21", "")
+
+      describe "when a file is removed", ->
+        it "triggers a 'change' event and passes the updated tree", (done) ->
+          previousTree = @fileTree.tree
+          @fileTree.on "change", (tree) ->
+            expect(tree).to.not.equal(previousTree)
+            tree = tree.toJS()
+            expect(node.name for node in tree.children[1].children).to.eql ["file_1", "file_3"]
+            done()
+          fs.unlinkSync("#{@tempDir}/z/file_2")
+
+      describe "when a file is renamed", ->
+        it "triggers a 'change' event and passes the updated tree", (done) ->
+          previousTree = @fileTree.tree
+          @fileTree.on "change", (tree) ->
+            expect(tree).to.not.equal(previousTree)
+            tree = tree.toJS()
+            expect(node.name for node in tree.children[1].children).to.eql ["file_1", "file_3", "file_4"]
+            done()
+          fs.renameSync("#{@tempDir}/z/file_2", "#{@tempDir}/z/file_4")

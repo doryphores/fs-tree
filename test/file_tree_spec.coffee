@@ -146,3 +146,83 @@ describe "FileTree", ->
             expect(@watchers).to.not.have.keys("d/e/e", "d/e/e/p/e/r")
             done()
           fs.removeSync("#{@tempDir}/d/e/e")
+
+  describe "expanding and collapsing", ->
+    beforeEach (done) ->
+      @fileTree.on "ready", done
+      @fileTree.build()
+
+    it "keeps track of expanded paths", ->
+      expect(@fileTree.expandedPaths).to.be.empty
+      @fileTree.expand("z")
+      expect(@fileTree.expandedPaths).to.eql ["z"]
+      @fileTree.expand("d")
+      expect(@fileTree.expandedPaths).to.eql ["z", "d"]
+      @fileTree.collapse("z")
+      expect(@fileTree.expandedPaths).to.eql ["d"]
+
+    describe "when expanding a node", ->
+      it "triggers a reload of the node", ->
+        fs.outputFileSync("#{@tempDir}/z/new_file")
+        expect(=> @fileTree.findNode("z/new_file")).to.throw()
+        @fileTree.expand("z")
+        expect(=> @fileTree.findNode("z/new_file")).to.not.throw()
+
+      it "starts a watcher on the node", (done) ->
+        @fileTree.expand("z")
+        @fileTree.on "change", =>
+          expect(=> @fileTree.findNode("z/new_file")).to.not.throw()
+          done()
+        fs.outputFile("#{@tempDir}/z/new_file")
+
+    describe "when collapsing a node", ->
+      beforeEach ->
+        @fileTree.expand("d")
+        @fileTree.expand("d/e")
+        @fileTree.expand("d/e/e")
+        @fileTree.expand("d/e/e/p")
+        expect(@fileTree.expandedPaths).to.eql ["d", "d/e", "d/e/e", "d/e/e/p"]
+
+      it "does not collapse any expanded child nodes", ->
+        @fileTree.collapse("d")
+        expect(@fileTree.expandedPaths).to.eql ["d/e", "d/e/e", "d/e/e/p"]
+
+      it "stops any watchers on the node and its children", (done) ->
+        @fileTree.collapse("d")
+        spy = sinon.spy()
+        @fileTree.on "change", spy
+        fs.outputFileSync("#{@tempDir}/d/e/e/p/new_file")
+        delay 500, =>
+          expect(spy).to.not.have.been.called
+          expect(=> @fileTree.findNode("d/e/e/p/new_file")).to.throw()
+          done()
+
+      describe "when collapsing recursively", ->
+        it "collapses all child nodes", ->
+          @fileTree.collapse("d", true)
+          expect(@fileTree.expandedPaths).to.be.empty
+
+    describe "when re-expanding a node", ->
+      beforeEach ->
+        @fileTree.expand("d")
+        @fileTree.expand("d/e")
+        @fileTree.expand("d/e/e")
+        @fileTree.expand("d/e/e/p")
+        @fileTree.collapse("d")
+        expect(@fileTree.expandedPaths).to.eql ["d/e", "d/e/e", "d/e/e/p"]
+
+      it "reloads expanded child nodes", ->
+        fs.outputFileSync("#{@tempDir}/d/e/e/p/new_file")
+        expect(=> @fileTree.findNode("d/e/e/p/new_file")).to.throw()
+        @fileTree.expand("d")
+        expect(=> @fileTree.findNode("d/e/e/p/new_file")).to.not.throw()
+
+      it "restarts watchers on any of its expanded children", (done) ->
+        @fileTree.expand("d")
+        spy = sinon.spy()
+        @fileTree.on "change", spy
+        fs.outputFileSync("#{@tempDir}/d/e/e/p/new_file")
+        delay 500, =>
+          expect(spy).to.have.been.called
+          expect(=> @fileTree.findNode("d/e/e/p/new_file")).to.not.throw()
+          done()

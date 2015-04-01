@@ -11,6 +11,9 @@ PathWatcher = require("pathwatcher")
 
 temp.track()
 
+timer = null
+delay = (t, fn) -> timer = setTimeout(fn, t)
+
 FileTree = require("../lib/main")
 
 describe "FileTree", ->
@@ -30,6 +33,7 @@ describe "FileTree", ->
     @fileTree = new FileTree(@tempDir)
 
   afterEach ->
+    clearTimeout(timer)
     PathWatcher.closeAllWatchers()
 
   describe "initializing the tree", ->
@@ -72,15 +76,14 @@ describe "FileTree", ->
       triggered = false
       @fileTree.on "change", -> triggered = true
       fs.outputFile("#{@tempDir}/new_file", "")
-      setTimeout (->
+      delay 500, ->
         expect(triggered).to.be.false
         done()
-      ), 500
 
     describe "when watching a folder node", ->
       beforeEach ->
         @fileTree.watchNode("z")
-        
+
       it "sets up a path watcher", ->
         expect(@fileTree.watchers).to.have.key("z")
 
@@ -110,7 +113,7 @@ describe "FileTree", ->
             expect(=> @fileTree.findNode("z/file_2")).to.throw "Node not found at path: z/file_2"
             done()
           fs.unlinkSync("#{@tempDir}/z/file_2")
-          
+
         it "siblings of deleted node are re-indexed", (done) ->
           file_3 = @fileTree.findNode("z/file_3")
           @fileTree.on "change", (tree) =>

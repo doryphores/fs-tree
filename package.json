@@ -2,7 +2,7 @@
   "name": "fs-tree",
   "version": "1.0.0",
   "description": "Self-updating file system tree",
-  "main": "lib/file-tree.js",
+  "main": "./lib/main",
   "scripts": {
     "test": "./node_modules/.bin/mocha --compilers coffee:coffee-script/register"
   },

@@ -1,13 +1,19 @@
 {
   "name": "fs-tree",
   "version": "1.0.0",
-  "description": "Self-updating file system tree",
+  "description": "Self-updating file system tree to be used by a tree UI component",
+  "author": {
+    "name": "Martin Laine"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/doryphores/fs-tree.git"
+  },
+  "license": "ISC",
   "main": "./lib/main",
   "scripts": {
     "test": "./node_modules/.bin/mocha --compilers coffee:coffee-script/register"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "immutable": "^3.7.0",
     "pathwatcher": "^4.3.1",

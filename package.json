@@ -12,7 +12,7 @@
   "license": "ISC",
   "main": "./lib/main",
   "scripts": {
-    "test": "./node_modules/.bin/mocha --compilers coffee:coffee-script/register"
+    "test": "mocha --compilers coffee:coffee-script/register"
   },
   "dependencies": {
     "immutable": "^3.7.0",
